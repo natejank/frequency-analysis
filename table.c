@@ -81,6 +81,15 @@ int _table_index(int size, int hash) {
     return hash % size;
 }
 
+struct value_s* _table_get_v(struct table_s *t, int hash) {
+    int index = _table_index(t->size, hash);
+    struct value_s *ev = t->values[index];
+    while (ev != NULL && ev->hash != hash) {
+        ev = ev->next;
+    }
+    return ev;
+}
+
 
 void _table_resize(struct table_s *t) {
     int new_size = t->size * 2;
@@ -93,11 +102,15 @@ void _table_resize(struct table_s *t) {
         table_insert(tmp, key, value);
     }
 
-    t->keys = realloc(t->keys, sizeof(struct key_s*) * new_size);
-    t->values = realloc(t->values, sizeof(struct value_s*) * new_size);
+    // a little switcharoo to make freeing easier
+    struct key_s **old_keys = t->keys;
+    struct value_s **old_vals = t->values;
+    t->keys = tmp->keys;
+    t->values = tmp->values;
+    tmp->size = t->size;
     t->size = new_size;
-    memcpy(t->values, tmp->values, new_size);
-
+    tmp->keys = old_keys;
+    tmp->values = old_vals;
     table_del(tmp);
 }
 
@@ -111,13 +124,19 @@ int table_size(struct table_s *t) {
 
 long table_get(struct table_s *t, char *key) {
     int hash = _hash_key(key);
-    int index = _table_index(t->size, hash);
-    return t->values[index]->value;
+    struct value_s *v = _table_get_v(t, hash);
+    if (v == NULL) {
+        return -1;
+    }
+    return v->value;
 }
 
 void table_del(struct table_s *t) {
     for (int i = 0; i < t->util; i++) {
-        _key_del(t->keys[i]);
+        struct key_s *k = t->keys[i];
+        struct value_s *v = _table_get_v(t, k->hash);
+        free(v);
+        free(k);
     }
     free(t->keys);
     free(t->values);
@@ -128,12 +147,11 @@ void table_insert(table *t, char *key, long value) {
     struct key_s *k = _key_new(key);
     struct value_s *v = _value_new(value, k->hash);
     int index = _table_index(t->size, k->hash);
-    struct value_s *ev = t->values[index];
 
+    struct value_s *ev = t->values[index];
     if (ev == NULL) {
         t->keys[t->util++] = k;
         t->values[index] = v;
-        return;
     } else if (ev->hash == v->hash) {
         ev->value = value;
         return;
