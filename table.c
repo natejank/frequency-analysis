@@ -184,11 +184,36 @@ bool table_contains(table *t, char *key) {
 
 void table_remove(table *t, char *key) {
     int hash = _hash_key(key);
+    int index = _table_index(t->size, hash);
+    struct value_s *pv = NULL;
+    struct value_s *v = t->values[index];
+
+    if (v == NULL) {
+        return;
+    }
+
+    while (v->hash != hash) {
+        pv = v;
+        v = pv->next;
+        if (v == NULL) {
+            return;
+        }
+    }
+
+    if (v->next != NULL) {
+        if (pv != NULL) {
+            pv->next = v->next;
+        } else {
+            t->values[index] = v->next;
+        }
+    }
+    _value_del(v);
+
     for (int i = 0; i < t->util; i++) {
-        if (t->keys[i]->hash == hash) {
-            free(t->keys[i]);
-            // TODO if there is a bug, it's probably here.
-            memmove(t->keys + i, t->keys + i + 1, i - t->util);
+        struct key_s *k = t->keys[i];
+        if (k->hash == hash) {
+            _key_del(k);
+            memmove(t->keys+i, t->keys+i+1, (t->util-1-i) * sizeof(struct key_s*));
             t->util = t->util - 1;
             return;
         }
