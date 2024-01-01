@@ -2,16 +2,28 @@
 #include <assert.h>
 
 int main(void) {
+    // test construct
     table *t = table_new();
+    // test insert
     table_insert(t, "hi", 32);
     assert(table_size(t) == 1);
 
+    // test changing value
     table_insert(t, "hi", 34);
+    assert(table_get(t, "hi") == 34);
+
+    // test re-insert
     table_insert(t, "hi", 34);
     assert(table_size(t) == 1);
+
+    // test adding another value
     table_insert(t, "goodbye", 0xDEADBEEF);
     assert(table_size(t) == 2);
 
+    // test contains
+    assert(table_contains(t, "goodbye"));
+
+    // add enough values to force a resize
     int m = 73;
     table_insert(t, "a", m++);
     table_insert(t, "b", m++);
@@ -42,6 +54,7 @@ int main(void) {
     table_print(t);
     assert(table_size(t) == 28);
 
+    // test remove
     table_remove(t, "a");
     table_remove(t, "b");
     table_remove(t, "c");
@@ -71,6 +84,7 @@ int main(void) {
     table_print(t);
     assert(table_size(t) == 2);
 
+    // test free
     table_del(t);
 }
 
