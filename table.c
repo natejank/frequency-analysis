@@ -96,7 +96,6 @@ void _table_resize(struct table_s *t) {
 
     for (int i = 0; i < t->util; i++) {
         char *key = t->keys[i]->key;
-        assert(key);
         long value = table_get(t, key);
         table_insert(tmp, key, value);
     }
@@ -131,7 +130,11 @@ long table_get(struct table_s *t, char *key) {
 }
 
 void table_del(struct table_s *t) {
-    for (int i = 0; i < t->util; i++) {
+    // Keys are nodes of a singly-linked list, to handle collisions. By freeing
+    // in reverse-order from insertion we can implicitly free the back of the
+    // list before the front, to avoid a use-after-free.  This is kind of a hack
+    // so it may or may not work. (but it seems to work in testing)
+    for (int i = t->util-1; i >= 0; i--) {
         struct key_s *k = t->keys[i];
         struct value_s *v = _table_get_v(t, k->hash);
         _key_del(k);
