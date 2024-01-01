@@ -38,9 +38,9 @@ int _hash_key(char *key) {
 }
 
 struct key_s* _key_new(char *k) {
-    int size = strlen(k);
+    int size = strlen(k) + 1;
     struct key_s *key = malloc(sizeof(struct key_s));
-    key->key = malloc(sizeof(char) * (size + 1));
+    key->key = malloc(sizeof(char) * size);
     strncpy(key->key, k, size);
     key->hash = _hash_key(k);
 
@@ -96,6 +96,7 @@ void _table_resize(struct table_s *t) {
 
     for (int i = 0; i < t->util; i++) {
         char *key = t->keys[i]->key;
+        assert(key);
         long value = table_get(t, key);
         table_insert(tmp, key, value);
     }
