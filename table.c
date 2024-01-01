@@ -135,8 +135,8 @@ void table_del(struct table_s *t) {
     for (int i = 0; i < t->util; i++) {
         struct key_s *k = t->keys[i];
         struct value_s *v = _table_get_v(t, k->hash);
-        free(v);
-        free(k);
+        _key_del(k);
+        _value_del(v);
     }
     free(t->keys);
     free(t->values);
@@ -152,8 +152,10 @@ void table_insert(table *t, char *key, long value) {
     if (ev == NULL) {
         t->keys[t->util++] = k;
         t->values[index] = v;
-    } else if (ev->hash == v->hash) {
+    } else if (ev->hash == k->hash) {
         ev->value = value;
+        _key_del(k);
+        _value_del(v);
         return;
     } else {
         while (ev->next != NULL) {
