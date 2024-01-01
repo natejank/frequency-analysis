@@ -7,7 +7,8 @@
 
 typedef struct table_s table;
 
-table* table_new(int size);
+table* table_new(void);
+int table_size(table *t);
 long table_get(table *t, char *key);
 void table_del(table *t);
 void table_insert(table *t, char *key, long value);
