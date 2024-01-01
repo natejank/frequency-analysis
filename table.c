@@ -5,9 +5,20 @@
 #include "table.h"
 #define MAX_UTILIZATION(size) size/2
 
+struct key_s {
+    char *key;
+    int hash;
+};
+
+struct value_s {
+    long value;
+    struct value_s *next;
+};
+
+
 struct table_s {
-    char **keys;
-    long *values;
+    struct key_s **keys;
+    struct value_s **values;
     int size;
     int util;
 };
@@ -39,7 +50,7 @@ void _resize_table(struct table_s *t) {
     t->size = new_size;
 
     for (int i = 0; i < tmp->util; i++) {
-        char *key = tmp->keys[i];
+        char *key = tmp->keys[i]->key;
         long value = table_get(t, key);
         table_insert(tmp, key, value);
     }
@@ -48,6 +59,32 @@ void _resize_table(struct table_s *t) {
     memcpy(t->values, tmp->values, new_size);
 
     table_del(tmp);
+}
+
+struct key_s* _new_key(char *k) {
+    int size = strlen(k);
+    struct key_s *key = malloc(sizeof(struct key_s));
+    key->key = malloc(sizeof(char) * size);
+    key->hash = _hash_key(k);
+
+    return key;
+}
+
+struct value_s* _new_value(long v) {
+    struct value_s *value = malloc(sizeof(struct value_s));
+    value->value = v;
+    value->next = NULL;
+
+    return value;
+}
+
+void _del_key(struct key_s *k) {
+    free(k->key);
+    free(k);
+}
+
+void _del_value(struct value_s *v) {
+    free(v);
 }
 
 struct table_s* table_new(int size) {
@@ -61,7 +98,7 @@ struct table_s* table_new(int size) {
 
 void table_del(struct table_s *t) {
     for (int i = 0; i < t->util; i++) {
-        free(t->keys[i]);
+        _del_key(t->keys[i]);
     }
     free(t->keys);
     free(t->values);
@@ -69,10 +106,9 @@ void table_del(struct table_s *t) {
 }
 
 bool table_contains(table *t, char *key) {
-    // TODO we should probably hash keys when we insert them for easier comparison
-    // key: {string, hash}
+    int hash = _hash_key(key);
     for (int i = 0; i < t->util; i++) {
-        if (strcmp(t->keys[i], key) == 0) {
+        if (t->keys[i]->hash == hash) {
             return true;
         }
     }
@@ -81,12 +117,13 @@ bool table_contains(table *t, char *key) {
 
 long table_get(struct table_s *t, char *key) {
     int index = _table_index(t->size, key);
-    return t->values[index];
+    return t->values[index]->value;
 }
 
 void table_remove(table *t, char *key) {
+    int hash = _hash_key(key);
     for (int i = 0; i < t->util; i++) {
-        if (strcmp(t->keys[i], key) == 0) {
+        if (t->keys[i]->hash == hash) {
             free(t->keys[i]);
             // TODO if there is a bug, it's probably here.
             memmove(t->keys + i, t->keys + i + 1, i - t->util);
@@ -99,7 +136,7 @@ void table_remove(table *t, char *key) {
 void table_print(table *t) {
     printf("{\n");
     for (int i = 0; i < t->util; i++) {
-        printf("%s: %ld\n", t->keys[i], table_get(t, t->keys[i]));
+        printf("%s: %ld\n", t->keys[i]->key, table_get(t, t->keys[i]->key));
     }
     printf("}\n");
 }
