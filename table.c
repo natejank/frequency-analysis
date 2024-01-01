@@ -70,7 +70,7 @@ struct table_s* _table_new(int size) {
     struct table_s *t = malloc(sizeof(struct table_s));
     t->size = size;
     t->util = 0;
-    t->keys = malloc(sizeof(struct key_s*) * size);
+    t->keys = calloc(sizeof(struct key_s*),  size);
     t->values = calloc(sizeof(struct value_s*), size);
     return t;
 }
