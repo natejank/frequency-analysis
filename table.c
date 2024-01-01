@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +6,7 @@
 
 #define DEFAULT_TABLE_SIZE 20
 #define MAX_UTILIZATION(size) size/2
+#define RESIZE(size) size*2
 
 struct key_s {
     char *key;
@@ -90,7 +90,7 @@ struct value_s* _table_get_v(struct table_s *t, int hash) {
 
 
 void _table_resize(struct table_s *t) {
-    int new_size = t->size * 2;
+    int new_size = RESIZE(t->size);
 
     struct table_s *tmp = _table_new(new_size);
 
