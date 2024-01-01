@@ -41,7 +41,7 @@ int _table_index(int size, char *key) {
 }
 
 
-void _resize_table(struct table_s *t) {
+void _table_resize(struct table_s *t) {
     int new_size = t->size * 2;
 
     struct table_s *tmp = table_new(new_size);
@@ -61,7 +61,7 @@ void _resize_table(struct table_s *t) {
     table_del(tmp);
 }
 
-struct key_s* _new_key(char *k) {
+struct key_s* _key_new(char *k) {
     int size = strlen(k);
     struct key_s *key = malloc(sizeof(struct key_s));
     key->key = malloc(sizeof(char) * size);
@@ -70,7 +70,7 @@ struct key_s* _new_key(char *k) {
     return key;
 }
 
-struct value_s* _new_value(long v) {
+struct value_s* _value_new(long v) {
     struct value_s *value = malloc(sizeof(struct value_s));
     value->value = v;
     value->next = NULL;
@@ -78,12 +78,12 @@ struct value_s* _new_value(long v) {
     return value;
 }
 
-void _del_key(struct key_s *k) {
+void _key_del(struct key_s *k) {
     free(k->key);
     free(k);
 }
 
-void _del_value(struct value_s *v) {
+void _value_del(struct value_s *v) {
     free(v);
 }
 
@@ -98,7 +98,7 @@ struct table_s* table_new(int size) {
 
 void table_del(struct table_s *t) {
     for (int i = 0; i < t->util; i++) {
-        _del_key(t->keys[i]);
+        _key_del(t->keys[i]);
     }
     free(t->keys);
     free(t->values);
@@ -118,6 +118,16 @@ bool table_contains(table *t, char *key) {
 long table_get(struct table_s *t, char *key) {
     int index = _table_index(t->size, key);
     return t->values[index]->value;
+}
+
+void table_insert(table *t, char *key, long value) {
+    int index = _table_index(t->size, key);
+    t->values[index]->value = value;
+    t->util++;
+
+    if (t->util > MAX_UTILIZATION(t->util)) {
+        _table_resize(t);
+    }
 }
 
 void table_remove(table *t, char *key) {
