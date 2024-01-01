@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +15,7 @@ struct key_s {
 
 struct value_s {
     long value;
+    int hash;
     struct value_s *next;
 };
 
@@ -41,6 +43,7 @@ struct key_s* _key_new(char *k) {
     int size = strlen(k);
     struct key_s *key = malloc(sizeof(struct key_s));
     key->key = malloc(sizeof(char) * size);
+    strncpy(key->key, k, size);
     key->hash = _hash_key(k);
 
     return key;
@@ -52,9 +55,10 @@ void _key_del(struct key_s *k) {
     free(k);
 }
 
-struct value_s* _value_new(long v) {
+struct value_s* _value_new(long v, int hash) {
     struct value_s *value = malloc(sizeof(struct value_s));
     value->value = v;
+    value->hash = hash;
     value->next = NULL;
 
     return value;
@@ -68,13 +72,13 @@ struct table_s* _table_new(int size) {
     struct table_s *t = malloc(sizeof(struct table_s));
     t->size = size;
     t->util = 0;
-    t->keys = malloc(sizeof(char*) * size);
-    t->values = malloc(sizeof(long) * size);
+    t->keys = malloc(sizeof(struct key_s*) * size);
+    t->values = malloc(sizeof(struct value_s*) * size);
     return t;
 }
 
-int _table_index(int size, char *key) {
-    return _hash_key(key) % size;
+int _table_index(int size, int hash) {
+    return hash % size;
 }
 
 
@@ -82,17 +86,16 @@ void _table_resize(struct table_s *t) {
     int new_size = t->size * 2;
 
     struct table_s *tmp = _table_new(new_size);
-    t->keys = realloc(t, sizeof(char*) * new_size);
-    t->keys = realloc(t, sizeof(long) * new_size);
-    t->size = new_size;
 
-    for (int i = 0; i < tmp->util; i++) {
-        char *key = tmp->keys[i]->key;
+    for (int i = 0; i < t->util; i++) {
+        char *key = t->keys[i]->key;
         long value = table_get(t, key);
         table_insert(tmp, key, value);
     }
 
-    t->size = tmp->size;
+    t->keys = realloc(t->keys, sizeof(struct key_s*) * new_size);
+    t->values = realloc(t->values, sizeof(struct value_s*) * new_size);
+    t->size = new_size;
     memcpy(t->values, tmp->values, new_size);
 
     table_del(tmp);
@@ -107,7 +110,8 @@ int table_size(struct table_s *t) {
 }
 
 long table_get(struct table_s *t, char *key) {
-    int index = _table_index(t->size, key);
+    int hash = _hash_key(key);
+    int index = _table_index(t->size, hash);
     return t->values[index]->value;
 }
 
@@ -121,11 +125,14 @@ void table_del(struct table_s *t) {
 }
 
 void table_insert(table *t, char *key, long value) {
-    int index = _table_index(t->size, key);
-    t->values[index]->value = value;
-    t->util++;
+    struct key_s *k = _key_new(key);
+    int index = _table_index(t->size, k->hash);
+    // TODO this doesnt work with collisions
+    assert(t->keys);
+    t->keys[t->util++] = k;
+    t->values[index] = _value_new(value, k->hash);
 
-    if (t->util > MAX_UTILIZATION(t->util)) {
+    if (t->util > MAX_UTILIZATION(t->size)) {
         _table_resize(t);
     }
 }
@@ -156,7 +163,7 @@ void table_remove(table *t, char *key) {
 void table_print(table *t) {
     printf("{\n");
     for (int i = 0; i < t->util; i++) {
-        printf("%s: %ld\n", t->keys[i]->key, table_get(t, t->keys[i]->key));
+        printf("\t%s: %ld\n", t->keys[i]->key, table_get(t, t->keys[i]->key));
     }
     printf("}\n");
 }

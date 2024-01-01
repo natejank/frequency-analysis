@@ -3,8 +3,6 @@
 
 #include <stdbool.h>
 
-#define DEFAULT_TABLE_SIZE 20
-
 typedef struct table_s table;
 
 table* table_new(void);
