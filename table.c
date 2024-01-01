@@ -126,11 +126,24 @@ void table_del(struct table_s *t) {
 
 void table_insert(table *t, char *key, long value) {
     struct key_s *k = _key_new(key);
+    struct value_s *v = _value_new(value, k->hash);
     int index = _table_index(t->size, k->hash);
-    // TODO this doesnt work with collisions
-    assert(t->keys);
-    t->keys[t->util++] = k;
-    t->values[index] = _value_new(value, k->hash);
+    struct value_s *ev = t->values[index];
+
+    if (ev == NULL) {
+        t->keys[t->util++] = k;
+        t->values[index] = v;
+        return;
+    } else if (ev->hash == v->hash) {
+        ev->value = value;
+        return;
+    } else {
+        while (ev->next != NULL) {
+            ev = ev->next;
+        }
+        ev->next = v;
+        t->keys[t->util++] = k;
+    }
 
     if (t->util > MAX_UTILIZATION(t->size)) {
         _table_resize(t);
