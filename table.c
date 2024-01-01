@@ -27,14 +27,12 @@ struct table_s {
 };
 
 int _hash_key(char *key) {
-    // http://www.cse.yorku.ca/~oz/hash.html
-    // djb2
-
-    int hash = 5381;
+    // http://www.cse.yorku.ca/~oz/hash.html - djb2
+    unsigned long hash = 5381;
     int c;
-    while ((c = *key++)) {
+
+    while ((c = *key++))
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-    }
 
     return hash;
 }
@@ -42,7 +40,7 @@ int _hash_key(char *key) {
 struct key_s* _key_new(char *k) {
     int size = strlen(k);
     struct key_s *key = malloc(sizeof(struct key_s));
-    key->key = malloc(sizeof(char) * size);
+    key->key = malloc(sizeof(char) * (size + 1));
     strncpy(key->key, k, size);
     key->hash = _hash_key(k);
 
@@ -73,7 +71,7 @@ struct table_s* _table_new(int size) {
     t->size = size;
     t->util = 0;
     t->keys = malloc(sizeof(struct key_s*) * size);
-    t->values = malloc(sizeof(struct value_s*) * size);
+    t->values = calloc(sizeof(struct value_s*), size);
     return t;
 }
 

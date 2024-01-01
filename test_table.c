@@ -39,8 +39,8 @@ int main(void) {
     table_insert(t, "x", m++);
     table_insert(t, "y", m++);
     table_insert(t, "z", m++);
-    assert(table_size(t) == 28);
     table_print(t);
+    assert(table_size(t) == 28);
     table_del(t);
 }
 
