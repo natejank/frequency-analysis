@@ -1,4 +1,7 @@
 *.o
 *.dSYM/
 build/
+.clangd
+.vim
+session.vim
 
