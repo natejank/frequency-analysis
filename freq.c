@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "table.h"
 
@@ -18,12 +19,34 @@ bool is_alphanumeric(char c) {
     );
 }
 
+bool is_quote(char c) {
+    return (c == '"' || c == '\'');
+}
+
+int trim_word(char *w, int size) {
+    char first = w[0];
+    char last = w[size - 1];
+    if (!is_alphanumeric(first) && is_alphanumeric(last)) {
+        memmove(w, w + 1, size - 1);
+        size--;
+        w[size] = '\0';
+    } else if (is_alphanumeric(first) && !is_alphanumeric(last)) {
+        size--;
+        w[size] = '\0';
+    } else if (!is_alphanumeric(first) && !is_alphanumeric(last)) {
+        memmove(w, w + 1, size - 1);
+        size = size - 2;
+        w[size] = '\0';
+    }
+
+    return size;
+}
+
 int main(int argc, char **argv) {
     if (argc < 2) {
         usage(argv[0]);
         return EXIT_FAILURE;
     }
-
 
     table *t = table_new();
 
@@ -33,6 +56,7 @@ int main(int argc, char **argv) {
     } else {
         fp = fopen(argv[1], "r");
     }
+
     int ws = 0;
     int wl = 20;
     char *word = malloc(sizeof(char) * wl);
@@ -49,6 +73,10 @@ int main(int argc, char **argv) {
                 continue;
             }
             word[ws++] = '\0';
+            int new_size = trim_word(word, ws-1);
+            if (new_size == 0) {
+                continue;
+            }
             int cur = table_get(t, word);
             if (cur == -1) {
                 table_insert(t, word, 1);
