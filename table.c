@@ -8,14 +8,16 @@
 #define MAX_UTILIZATION(size) size/2
 #define RESIZE(size) size*2
 
+typedef unsigned int hash_t;
+
 struct key_s {
     char *key;
-    int hash;
+    hash_t hash;
 };
 
 struct value_s {
     long value;
-    int hash;
+    hash_t hash;
     struct value_s *next;
 };
 
@@ -26,10 +28,10 @@ struct table_s {
     int util;
 };
 
-int _hash_key(char *key) {
+hash_t _hash_key(char *key) {
     // http://www.cse.yorku.ca/~oz/hash.html - djb2
-    unsigned long hash = 5381;
-    int c;
+    hash_t hash = 5381;
+    char c;
 
     while ((c = *key++))
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
@@ -53,7 +55,7 @@ void _key_del(struct key_s *k) {
     free(k);
 }
 
-struct value_s* _value_new(long v, int hash) {
+struct value_s* _value_new(long v, hash_t hash) {
     struct value_s *value = malloc(sizeof(struct value_s));
     value->value = v;
     value->hash = hash;
@@ -75,11 +77,11 @@ struct table_s* _table_new(int size) {
     return t;
 }
 
-int _table_index(int size, int hash) {
+int _table_index(int size, hash_t hash) {
     return hash % size;
 }
 
-struct value_s* _table_get_v(struct table_s *t, int hash) {
+struct value_s* _table_get_v(struct table_s *t, hash_t hash) {
     int index = _table_index(t->size, hash);
     struct value_s *ev = t->values[index];
     while (ev != NULL && ev->hash != hash) {
@@ -121,7 +123,7 @@ int table_size(struct table_s *t) {
 }
 
 long table_get(struct table_s *t, char *key) {
-    int hash = _hash_key(key);
+    hash_t hash = _hash_key(key);
     struct value_s *v = _table_get_v(t, hash);
     if (v == NULL) {
         return -1;
@@ -173,7 +175,7 @@ void table_insert(table *t, char *key, long value) {
 }
 
 bool table_contains(table *t, char *key) {
-    int hash = _hash_key(key);
+    hash_t hash = _hash_key(key);
     for (int i = 0; i < t->util; i++) {
         if (t->keys[i]->hash == hash) {
             return true;
@@ -183,7 +185,7 @@ bool table_contains(table *t, char *key) {
 }
 
 void table_remove(table *t, char *key) {
-    int hash = _hash_key(key);
+    hash_t hash = _hash_key(key);
     int index = _table_index(t->size, hash);
     struct value_s *pv = NULL;
     struct value_s *v = t->values[index];
