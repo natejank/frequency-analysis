@@ -3,6 +3,12 @@ BUILD := build
 CFLAGS := -Wall -Wextra -pedantic
 DEBUG_FLAGS := $(CFLAGS) -ggdb -O0
 
+build_freq: table_o
+	$(CC) $(CFLAGS) freq.c $(BUILD)/table.o -o $(BUILD)/freq
+
+debug: table_o_debug
+	$(CC) $(DEBUG_FLAGS) freq.c $(BUILD)/table.o -o $(BUILD)/freq
+
 build_folder:
 	mkdir -p $(BUILD) 2> /dev/null
 
