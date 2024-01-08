@@ -42,6 +42,17 @@ int trim_word(char *w, int size) {
     return size;
 }
 
+void print_csv(table *t) {
+    t_keys *keys = table_keys(t);
+    for (int i = 0; i < keys->count; i++) {
+        char *key = keys->keys[i];
+        int value = table_get(t, key);
+
+        printf("%s,%d\n", key, value);
+    }
+    table_t_keys_del(keys);
+}
+
 int main(int argc, char **argv) {
     if (argc < 2) {
         usage(argv[0]);
@@ -88,7 +99,7 @@ int main(int argc, char **argv) {
     }
     free(word);
     wl = 20;
-    table_print(t);
+    print_csv(t);
     table_del(t);
     fclose(fp);
 }
