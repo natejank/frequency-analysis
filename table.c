@@ -122,6 +122,28 @@ int table_size(struct table_s *t) {
     return t->util;
 }
 
+t_keys* table_keys(struct table_s *t) {
+    t_keys *k = malloc(sizeof(t_keys));
+    k->count = table_size(t);
+    k->keys = malloc(sizeof(char*) * k->count);
+
+    for (int i = 0; i < k->count; i++) {
+        char *orig = t->keys[i]->key;
+        int len = strlen(orig) + 1;
+        char *new = malloc(sizeof(char) * len);
+        strncpy(new, orig, len);
+        k->keys[i] = new;
+    }
+    return k;
+}
+
+void table_t_keys_del(t_keys *k) {
+    for (int i = 0; i < k->count; i++) {
+        free(k->keys[i]);
+    }
+    free(k);
+}
+
 long table_get(struct table_s *t, char *key) {
     hash_t hash = _hash_key(key);
     struct value_s *v = _table_get_v(t, hash);
