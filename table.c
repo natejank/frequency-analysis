@@ -156,17 +156,19 @@ void table_insert(table *t, char *key, long value) {
     if (ev == NULL) {
         t->keys[t->util++] = k;
         t->values[index] = v;
-    } else if (ev->hash == k->hash) {
-        ev->value = value;
-        _key_del(k);
-        _value_del(v);
-        return;
     } else {
-        while (ev->next != NULL) {
+        while (ev->hash != k->hash && ev->next != NULL) {
             ev = ev->next;
         }
-        ev->next = v;
-        t->keys[t->util++] = k;
+        if (ev->hash == k->hash) {
+            ev->value = value;
+            _key_del(k);
+            _value_del(v);
+            return;
+        } else {
+            ev->next = v;
+            t->keys[t->util++] = k;
+        }
     }
 
     if (t->util > MAX_UTILIZATION(t->size)) {
