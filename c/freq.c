@@ -23,6 +23,15 @@ bool is_quote(char c) {
     return (c == '"' || c == '\'');
 }
 
+void to_lower_case(char *w) {
+    for (unsigned int i = 0; i < strlen(w); i++) {
+        char c = *(w + i);
+        if ('A' <= c && c <= 'Z') {
+            *(w + i) = c + 32;
+        }
+    }
+}
+
 int trim_word(char *w, int size) {
     char first = w[0];
     char last = w[size - 1];
@@ -88,6 +97,7 @@ int main(int argc, char **argv) {
             if (new_size == 0) {
                 continue;
             }
+            to_lower_case(word);
             int cur = table_get(t, word);
             if (cur == -1) {
                 table_insert(t, word, 1);
