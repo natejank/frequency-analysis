@@ -3,6 +3,10 @@ module Frequency
         return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9')
     end
 
+    function is_wordbreak(c::Char)
+        return isspace(c) || (c == '-') || (c == '—') || (c == '–')
+    end
+
     function trimWord(word::String)
         if !is_alphanumeric(word[1])
             ai = 1
@@ -33,10 +37,11 @@ module Frequency
     end
 
     function to_csv(map::Dict)
+        println("word,usage")
         for k in keys(map)
-            println("$(k), $(map[k])")
+            println("$(k),$(map[k])")
         end
     end
 
-    export is_alphanumeric, trimWord, to_csv
+    export is_alphanumeric, is_wordbreak, trimWord, to_csv
 end

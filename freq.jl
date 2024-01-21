@@ -13,7 +13,7 @@ fp = open(ARGS[1])
 word = ""
 for chr in readeach(fp, Char)
     global word
-    if !isspace(chr)
+    if !is_wordbreak(chr)
         word = word * chr
     elseif word != ""
         word = lowercase(word)
