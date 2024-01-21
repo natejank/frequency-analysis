@@ -5,33 +5,29 @@ module Frequency
 
     function trimWord(word::String)
         if !is_alphanumeric(word[1])
-            dec = 1
-            while !is_alphanumeric(word[1 + dec])
-                dec += 1
-                if dec == length(word)
+            ai = 1
+            for (i, c) in pairs(word)
+                if (is_alphanumeric(word[i]))
+                    ai = i
                     break
                 end
             end
-
-            word = SubString(word, 1 + dec, length(word))
+            word = SubString(word, ai, lastindex(word))
         end
 
         if length(word) == 0
             return ""
         end
 
-        if !is_alphanumeric(word[length(word)])
-            dec = 1
-            while !is_alphanumeric(word[length(word) - dec])
-
-                dec += 1
-                if dec == length(word)
+        if !is_alphanumeric(word[lastindex(word)])
+            ai = lastindex(word)
+            for (i, c) in Iterators.reverse(pairs(word))
+                if (is_alphanumeric(word[i]))
+                    ai = i
                     break
                 end
-
             end
-
-            word = SubString(word, 1, length(word) - dec)
+            word = SubString(word, firstindex(word), ai)
         end
         return word
     end
