@@ -4,6 +4,7 @@ module Frequency
     end
 
     function is_wordbreak(c::Char)
+        # space, hiphen, em-dash, en-dash
         return isspace(c) || (c == '-') || (c == '—') || (c == '–')
     end
 
