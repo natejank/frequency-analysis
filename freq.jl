@@ -9,6 +9,7 @@ if (length(ARGS) < 1)
     exit(1)
 end
 
+# function for calculating the word frequency for a file
 function freq(filepath::String)
     words = Dict{String, Int64}()
     fp = open(filepath)
@@ -31,32 +32,30 @@ function freq(filepath::String)
     return words
 end
 
-function syncCombineWordLists(l, dest, source)
-    lock(l)
-    try
-        for word in keys(source)
-            dest[word] = get(dest, word, 0) + source[word]
-        end
-    finally
-        unlock(l)
-    end
-end
-
-
-l = ReentrantLock()
+# create threads for all files
+totalWordsLock = ReentrantLock()
 totalWords = Dict{String, Int64}()
 threads = Vector{Task}()
 for fn in ARGS
     t = @spawn begin
         words = freq(fn)
         println(fn)
-        syncCombineWordLists(l, totalWords, words)
+        # lock dictionary for insertions individually, so multiple threads can append at the same time
+        for word in keys(words)
+            lock(totalWordsLock)
+            try
+                totalWords[word] = get(totalWords, word, 0) + words[word]
+            finally
+                unlock(totalWordsLock)
+            end
+        end
     end
     push!(threads, t)
 end
 
+# make sure each thread completes
 for t in threads
     wait(t)
 end
 
-# to_csv(totalWords)
+to_csv(totalWords)
