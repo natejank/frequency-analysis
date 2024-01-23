@@ -40,7 +40,7 @@ module Frequency
     function to_csv(map::Dict)
         println("word,usage")
         for k in keys(map)
-            println("$(k),$(map[k])")
+            println("\"$(k)\",$(map[k])")
         end
     end
 
