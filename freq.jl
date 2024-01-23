@@ -38,8 +38,13 @@ totalWords = Dict{String, Int64}()
 threads = Vector{Task}()
 for fn in ARGS
     t = @spawn begin
+        words = Dict{String, Int64}()
+        try
         words = freq(fn)
-        println(fn)
+        catch Exception
+            @warn "Failed to parse $(fn)!"
+            return
+        end
         # lock dictionary for insertions individually, so multiple threads can append at the same time
         for word in keys(words)
             lock(totalWordsLock)
