@@ -52,7 +52,7 @@ for (i, filename) in pairs(ARGS)
         catch Exception
             # freq might fail if the encoding is non-standard.  It's easiest
             # just to skip that input.
-            @warn "Failed to parse $(filename)!"
+            @warn "Failed to parse $(filename)! Skipping."
             return
         end
 

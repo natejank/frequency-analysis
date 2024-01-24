@@ -9,3 +9,6 @@ for working with Unicode text, as well as other string processing utilities.
 The program is `freq.jl`, which relies on library functions found at
 `Freqency.jl`.  The program aggregates data from inputs, and outputs a
 CSV of words to stdout.
+
+Usage: `julia -t$NTHREADS freq.jl path/to/inputs/* > output.csv`.  `$NTHREADS`
+is assumed to be the number of threads for Julia to use.
